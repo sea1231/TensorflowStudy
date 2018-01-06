@@ -73,8 +73,3 @@ def plot_image(image):
 
 plot_image(img)
 
-
-
-
-
-
