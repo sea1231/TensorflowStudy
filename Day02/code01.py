@@ -7,8 +7,33 @@ import os
 import cv2
 from matplotlib import pyplot as plt
 
+
+# 과제 1번 / gray scale read image
+def gray_imread(image_path):
+    img_gray = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    cv2.imshow('gray', img_gray)
+    cv2.waitKey(0)
+
+
+# 과제 2번 / image crop
+def crop_image(image, crop_x_begin, crop_x_end, crop_y_begin, crop_y_end):
+    image = image[crop_x_begin:crop_x_end, crop_y_begin:crop_y_end]
+    return image
+
+# 과제 3번
+def image_chanal_division(image):
+    #b,g,r = cv2.split(image)
+    blue = image.copy()
+    blue[:,:,1] = 0
+    blue[:,:,2] = 0
+
+    cv2.imshow('image_b', blue)
+    cv2.waitKey(0)
+
 image_path = "../animal_images/cat/images.jpeg" # image 경로 설정
 img = cv2.imread(image_path) # img type은  numpy array 이다 / img 불러오기
+
+image_chanal_division(img)
 
 print(img.ndim) # 차원 출력, 이때 img는 3차원 (r,g,b)이기 때문
 print(img.shape) # 이미지의 크기 출력, 세로 187 가로 270
@@ -47,5 +72,9 @@ def plot_image(image):
     plt.show()
 
 plot_image(img)
+
+
+
+
 
 
