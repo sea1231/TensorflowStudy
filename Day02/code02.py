@@ -17,7 +17,7 @@ print(image_dir_list)
 def load_image(addr):
     img = cv2.imread(addr) # load image
     img = cv2.resize(img,(IMG_HEIGHT, IMG_WIDTH),interpolation=cv2.INTER_CUBIC) # resize image
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = img.astype(np.float32) # type change
     return img
 
@@ -44,8 +44,16 @@ print(type(features))
 features = np.array(features) # tuple -> np.array
 labels = np.array(labels) # tuple -> np.array
 
+image = features[0] # 1개의 이미지 선택
 
+# 우리는 하나의 이미지를 1차원 벡터로 바꾸었기 때문에, 다시 이를 3차원으로 변경
+image = image.reshape((IMG_HEIGHT,IMG_WIDTH,NUM_CHANNEL))
+# float type 에서 이미지는 int 이기 때문에 이를 int 형식으로 변경
+image = image.astype(np.uint8)
 
+cv2.imshow('f0',image)
+cv2.imwrite('code02_1.jpg',image)
+cv2.waitKey(0)
 
 
 
