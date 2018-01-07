@@ -1,12 +1,10 @@
 
 # 이미지를 불러오고, 4등분으로 짜르기
 # 이미지 다루기 연습 예제
-
 import numpy as np
 import os
 import cv2
 from matplotlib import pyplot as plt
-
 
 # 과제 1번 / gray scale read image
 def gray_imread(image_path):
