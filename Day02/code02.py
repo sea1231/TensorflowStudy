@@ -12,7 +12,6 @@ NUM_CHANNEL = 3
 NUM_CLASS = 5 # image classfication
 IMAGE_DIR_BASE = "../animal_images"
 image_dir_list = os.listdir(IMAGE_DIR_BASE)
-print(image_dir_list)
 
 
 # image load function
@@ -42,18 +41,17 @@ zip_list = list(zip(features, labels))
 shuffle(zip_list)
 features, labels = zip(*zip_list)
 
-print(type(features))
 
 features = np.array(features) # tuple -> np.array
 labels = np.array(labels) # tuple -> np.array
 
-# test 하기
-image = features[0] # 1개의 이미지 선택
-
-# 우리는 하나의 이미지를 1차원 벡터로 바꾸었기 때문에, 다시 이를 3차원으로 변경
-image = image.reshape((IMG_HEIGHT,IMG_WIDTH,NUM_CHANNEL))
-# float type 에서 이미지는 int 이기 때문에 이를 int 형식으로 변경
-image = image.astype(np.uint8)
+# # test 하기
+# image = features[0] # 1개의 이미지 선택
+#
+# # 우리는 하나의 이미지를 1차원 벡터로 바꾸었기 때문에, 다시 이를 3차원으로 변경
+# image = image.reshape((IMG_HEIGHT,IMG_WIDTH,NUM_CHANNEL))
+# # float type 에서 이미지는 int 이기 때문에 이를 int 형식으로 변경
+# image = image.astype(np.uint8)
 
 # cv2.imshow('f0',image)
 # cv2.imwrite('code02_1.jpg',image)
@@ -63,7 +61,6 @@ image = image.astype(np.uint8)
 train_features = features[:int(len(features)*0.8)]
 train_labels = labels[:int(len(labels)*0.8)]
 
-print(train_labels)
 test_features = features[int(len(features)*0.8):]
 test_labels = labels[int(len(labels)*0.8):]
 
@@ -82,7 +79,6 @@ def train_data_iterator():
         batch_size = BATCH_SIZE
         # batch_size 만큼의 단위로 이미지들을 구별(50개의 이미지가 1묶음)
         for batch_idx in range(0, len(train_features), batch_size):
-            print(batch_idx)
             images_batch = shuf_features[batch_idx:batch_idx + batch_size] / 255.
             images_batch = images_batch.astype("float32")
             labels_batch = shuf_labels[batch_idx:batch_idx + batch_size]
@@ -115,11 +111,19 @@ fc2 = tf.nn.relu(tf.matmul(fc1, w2) + b2)
 w3 = tf.get_variable("w3",[512, NUM_CLASS])
 b3 = tf.get_variable("b3",[NUM_CLASS])
 
-y_pred = tf.matmul(fc2, w3)
+y_pred = tf.matmul(fc2, w3) + b3
 
 loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=y_pred, labels=labels_batch)
 loss_mean = tf.reduce_mean(loss)
 train_op = tf.train.AdamOptimizer().minimize(loss)
+
+# Test trained model
+y_normalized = tf.nn.softmax(y_pred)
+y_pred_labels = tf.cast(tf.argmax(y_normalized,1),tf.int32)
+
+correct_prediction = tf.equal(y_pred_labels, labels_batch)
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
 
 # ======== tensorflow graph 설정 끝 ========
 
@@ -129,16 +133,18 @@ sess.run(tf.global_variables_initializer())
 
 iter_ = train_data_iterator() #generator를 호출하면 iterator를 반환한다.
 
-
 for step in range(100):
     # get a batch of data
     # 50개 단위로 이미지를 받아와 images_atch_val, labels_batch_val에 저장
     images_batch_val, labels_batch_val = next(iter_)
 
-    _, loss_val = sess.run([train_op, loss_mean], feed_dict={
+    _, loss_val,y_pred_labels_val, accuracy_val= sess.run([train_op, loss_mean, y_pred_labels, accuracy], feed_dict={
         images_batch: images_batch_val,
         labels_batch: labels_batch_val})
-    print(loss_val)
+
+    print(loss_val,y_pred_labels_val,accuracy_val)
+    print(labels_batch_val)
+    print("")
 
 print('Training Finished....')
 
@@ -147,9 +153,9 @@ TEST_BSIZE = 50
 for i in range(int(len(test_features)/TEST_BSIZE)):
     images_batch_val = test_features[i*TEST_BSIZE:(i+1)*TEST_BSIZE] / 255.
     labels_batch_val = test_labels[i*TEST_BSIZE:(i+1)*TEST_BSIZE]
+
     loss_val = sess.run([loss_mean], feed_dict={
                     images_batch:images_batch_val,
                     labels_batch:labels_batch_val
                     })
 
-    print(loss_val)
