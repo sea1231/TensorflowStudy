@@ -1,3 +1,7 @@
+
+# 경사하강법 Gradient Descent
+# 변수가 1개 일때
+
 from random import random
 
 # 함수 정의
