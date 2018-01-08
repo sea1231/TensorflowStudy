@@ -7,7 +7,7 @@ import tensorflow as tf
 
 # setting
 IMG_HEIGHT = 100  # image resize height
-IMG_WIDTH = 100  # image resize width
+IMG_WIDTH = 70  # image resize width
 NUM_CHANNEL = 3
 NUM_CLASS = 5  # image classfication
 IMAGE_DIR_BASE = "../animal_images"
@@ -145,7 +145,7 @@ sess.run(tf.global_variables_initializer())
 
 iter_ = train_data_iterator()  # generator를 호출하면 iterator를 반환한다.
 
-for step in range(500):
+for step in range(100):
     # get a batch of data
     # 50개 단위로 이미지를 받아와 images_atch_val, labels_batch_val에 저장
     images_batch_val, labels_batch_val = next(iter_)
