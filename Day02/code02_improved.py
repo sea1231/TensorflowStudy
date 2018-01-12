@@ -6,9 +6,9 @@ import tensorflow as tf
 
 
 # setting
-IMG_HEIGHT = 100  # image resize height
-IMG_WIDTH = 70  # image resize width
-NUM_CHANNEL = 3
+IMG_HEIGHT = 80  # image resize height
+IMG_WIDTH = 80  # image resize width
+NUM_CHANNEL = 1
 NUM_CLASS = 5  # image classfication
 IMAGE_DIR_BASE = "../animal_images"
 image_dir_list = os.listdir(IMAGE_DIR_BASE)
@@ -16,7 +16,7 @@ image_dir_list = os.listdir(IMAGE_DIR_BASE)
 
 # image load function
 def load_image(addr):
-    img = cv2.imread(addr)  # load image
+    img = cv2.imread(addr,cv2.IMREAD_GRAYSCALE)  # load image
     img = cv2.resize(img, (IMG_HEIGHT, IMG_WIDTH), interpolation=cv2.INTER_CUBIC)  # resize image
     # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = img.astype(np.float32)  # type change
@@ -95,33 +95,24 @@ labels_batch = tf.placeholder(dtype=tf.int32, shape=[None, ])
 # weight and bias set,
 # 행렬끼리 곱하기 위해서는 행x열 X 행(이전의 열)x열(배출될 원소 갯수)
 # W행렬은 “이전 layer의 노드 개수 * 현재 layer의 노드 개수
-w1 = tf.get_variable("w1", [IMG_HEIGHT * IMG_WIDTH * NUM_CHANNEL, 2048])
-b1 = tf.get_variable("b1", [2048])
+w1 = tf.get_variable("w1", [IMG_HEIGHT * IMG_WIDTH * NUM_CHANNEL, 30])
+b1 = tf.get_variable("b1", [30])
 
 # layer 1의 출력벡터
 # activation function=relu을 이용해 출력벡터 계산
 fc1 = tf.nn.relu(tf.matmul(images_batch, w1) + b1)
 
 # layer 2 설정
-w2 = tf.get_variable("w2", [2048, 1024])
-b2 = tf.get_variable("b2", [1024])
+w2 = tf.get_variable("w2", [30, 40])
+b2 = tf.get_variable("b2", [40])
 # 이전 layer의 출력이 이 layer의 입력이 된다.
 fc2 = tf.nn.relu(tf.matmul(fc1, w2) + b2)
 
 # layer 3 설정
-w3 = tf.get_variable("w3", [1024, 512])
-b3 = tf.get_variable("b3", [512])
-fc3 = tf.nn.relu(tf.matmul(fc2, w3) + b3)
+w3 = tf.get_variable("w3", [40, NUM_CLASS])
+b3 = tf.get_variable("b3", [NUM_CLASS])
 
-# layer 4 설정
-w4 = tf.get_variable("w4", [512, 256])
-b4 = tf.get_variable("b4", [256])
-fc4 = tf.nn.relu(tf.matmul(fc3,w4) + b4)
-
-w5 = tf.get_variable("w5", [256, NUM_CLASS])
-b5 = tf.get_variable("b5", [NUM_CLASS])
-
-y_pred = tf.matmul(fc4, w5) + b5
+y_pred = tf.matmul(fc2, w3) + b3
 
 loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=y_pred, labels=labels_batch)
 loss_mean = tf.reduce_mean(loss)
@@ -145,7 +136,7 @@ sess.run(tf.global_variables_initializer())
 
 iter_ = train_data_iterator()  # generator를 호출하면 iterator를 반환한다.
 
-for step in range(100):
+for step in range(1000):
     # get a batch of data
     # 50개 단위로 이미지를 받아와 images_atch_val, labels_batch_val에 저장
     images_batch_val, labels_batch_val = next(iter_)
@@ -160,7 +151,7 @@ for step in range(100):
 
 print('Training Finished....')
 
-TEST_BSIZE = 50
+TEST_BSIZE = 10
 
 for i in range(int(len(test_features) / TEST_BSIZE)):
     images_batch_val = test_features[i * TEST_BSIZE:(i + 1) * TEST_BSIZE] / 255.
