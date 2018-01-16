@@ -18,7 +18,7 @@ image_dir_list = os.listdir(IMAGE_DIR_BASE)
 def load_image(addr):
     img = cv2.imread(addr) # load image
     img = cv2.resize(img,(IMG_HEIGHT, IMG_WIDTH),interpolation=cv2.INTER_CUBIC) # resize image
-    #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = img.astype(np.float32) # type change
     return img
 
@@ -82,7 +82,6 @@ def train_data_iterator():
             images_batch = shuf_features[batch_idx:batch_idx + batch_size] / 255.
             images_batch = images_batch.astype("float32")
             labels_batch = shuf_labels[batch_idx:batch_idx + batch_size]
-            print(batch_idx)
             yield images_batch, labels_batch
 
 
@@ -96,27 +95,27 @@ labels_batch = tf.placeholder(dtype=tf.int32,shape = [None,])
 # weight and bias set,
 # 행렬끼리 곱하기 위해서는 행x열 X 행(이전의 열)x열(배출될 원소 갯수)
 # W행렬은 “이전 layer의 노드 개수 * 현재 layer의 노드 개수
-w1 = tf.get_variable("w1", [IMG_HEIGHT*IMG_WIDTH*NUM_CHANNEL,1024])
-b1 = tf.get_variable("b1",[1024])
+w1 = tf.get_variable("w1", [IMG_HEIGHT*IMG_WIDTH*NUM_CHANNEL,1024*2])
+b1 = tf.get_variable("b1",[1024*2])
 
 # layer 1의 출력벡터
 # activation function=relu을 이용해 출력벡터 계산
 fc1 = tf.nn.relu(tf.matmul(images_batch,w1) + b1)
 
 # layer 2 설정
-w2 = tf.get_variable("w2", [1024, 512])
-b2 = tf.get_variable("b2", [512])
+w2 = tf.get_variable("w2", [1024*2, 512*2])
+b2 = tf.get_variable("b2", [512*2])
 # 이전 layer의 출력이 이 layer의 입력이 된다.
 fc2 = tf.nn.relu(tf.matmul(fc1, w2) + b2)
 
-w3 = tf.get_variable("w3",[512, NUM_CLASS])
+w3 = tf.get_variable("w3",[512*2, NUM_CLASS])
 b3 = tf.get_variable("b3",[NUM_CLASS])
 
 y_pred = tf.matmul(fc2, w3) + b3
 
 loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=y_pred, labels=labels_batch)
 loss_mean = tf.reduce_mean(loss)
-train_op = tf.train.AdamOptimizer().minimize(loss)
+train_op = tf.train.AdamOptimizer().minimize(loss_mean)
 
 # 결과값에 soft max 적용
 # 그럼 결과 y_pred(5개의 값)이 normalized 됨
@@ -138,17 +137,17 @@ sess.run(tf.global_variables_initializer())
 
 iter_ = train_data_iterator() #generator를 호출하면 iterator를 반환한다.
 
-for step in range(100):
+for step in range(500):
     # get a batch of data
     # 50개 단위로 이미지를 받아와 images_atch_val, labels_batch_val에 저장
     images_batch_val, labels_batch_val = next(iter_)
 
     # 테스트를 위해 여러가지 텐서들을 실행
-    _, loss_val = sess.run([train_op, loss_mean], feed_dict={
+    _, loss_val, accuracy_val = sess.run([train_op, loss_mean, accuracy], feed_dict={
         images_batch: images_batch_val,
         labels_batch: labels_batch_val})
 
-    print(loss_val)
+    print(loss_val, accuracy_val)
 
 print('Training Finished....')
 
@@ -158,8 +157,8 @@ for i in range(int(len(test_features)/TEST_BSIZE)):
     images_batch_val = test_features[i*TEST_BSIZE:(i+1)*TEST_BSIZE] / 255.
     labels_batch_val = test_labels[i*TEST_BSIZE:(i+1)*TEST_BSIZE]
 
-    loss_val = sess.run([loss_mean], feed_dict={
+    loss_val, accuracy_val = sess.run([loss_mean, accuracy], feed_dict={
                     images_batch:images_batch_val,
                     labels_batch:labels_batch_val
                     })
-    print(loss_val)
+    print(loss_val, accuracy_val)

@@ -6,9 +6,9 @@ import tensorflow as tf
 
 
 # setting
-IMG_HEIGHT = 80  # image resize height
-IMG_WIDTH = 80  # image resize width
-NUM_CHANNEL = 1
+IMG_HEIGHT = 60*2  # image resize height
+IMG_WIDTH = 60*2  # image resize width
+NUM_CHANNEL = 3
 NUM_CLASS = 5  # image classfication
 IMAGE_DIR_BASE = "../animal_images"
 image_dir_list = os.listdir(IMAGE_DIR_BASE)
@@ -116,7 +116,7 @@ y_pred = tf.matmul(fc2, w3) + b3
 
 loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=y_pred, labels=labels_batch)
 loss_mean = tf.reduce_mean(loss)
-train_op = tf.train.AdamOptimizer().minimize(loss)
+train_op = tf.train.AdamOptimizer().minimize(loss_mean)
 
 # 결과값에 soft max 적용
 # 그럼 결과 y_pred(5개의 값)이 normalized 됨
@@ -136,7 +136,7 @@ sess.run(tf.global_variables_initializer())
 
 iter_ = train_data_iterator()  # generator를 호출하면 iterator를 반환한다.
 
-for step in range(1000):
+for step in range(500):
     # get a batch of data
     # 50개 단위로 이미지를 받아와 images_atch_val, labels_batch_val에 저장
     images_batch_val, labels_batch_val = next(iter_)
